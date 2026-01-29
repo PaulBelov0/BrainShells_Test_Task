@@ -8,14 +8,14 @@ MainWindow::MainWindow(QWidget *parent)
     QWidget* wgt = new QWidget(this);
     setCentralWidget(wgt);
 
-    QVBoxLayout* layout = new QVBoxLayout(wgt);
+    m_layout = new QVBoxLayout(wgt);
 
-    FileSelector* fileSelector = new FileSelector(SelectionType::Archive, this);
-    layout->addWidget(fileSelector);
-    QPushButton* extractArchiveBtn = new QPushButton("Extract", this);
-    layout->addWidget(extractArchiveBtn);
+    m_tabWidget = new QTabWidget(this);
 
-    connect(extractArchiveBtn, &QPushButton::clicked, [this, fileSelector]{
-        fileSelector->extractArchive(QFileDialog::getExistingDirectory(this, "Select folder", QDir::homePath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks ));
-    });
+    ExtractionTab* extractionTab = new ExtractionTab(this);
+    CompressionTab* compressionTab = new CompressionTab(this);
+
+    m_tabWidget->addTab(extractionTab, "Extract");
+    m_tabWidget->addTab(compressionTab, "Compress");
+    m_layout->addWidget(m_tabWidget);
 }

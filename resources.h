@@ -3,7 +3,8 @@
 
 enum class SelectionType {
     Dir,
-    Archive
+    Archive,
+    File
 };
 
 #endif // RESOURCES_H

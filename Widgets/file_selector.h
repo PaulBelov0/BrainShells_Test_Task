@@ -13,17 +13,20 @@
 #include <archive_entry.h>
 
 #include "../resources.h"
+#include "../services/archive_manager.h"
 
 class FileSelector : public QWidget
 {
     Q_OBJECT
 public:
-    explicit FileSelector(SelectionType type, QWidget *parent = nullptr);
+    explicit FileSelector(ArchiveManager* archiveManager, SelectionType type, QWidget *parent = nullptr);
 
-public slots:
-    bool extractArchive(QString savePath);
+    QString getPath() { return m_containedPath; }
+    void setType(SelectionType type) { m_type = type; }
+    void clearText() { m_path->clear(); m_containedPath.clear(); }
 private:
-    QString getSupportedArchiveFormats();
+
+    QString m_containedPath;
 
     SelectionType m_type;
 
