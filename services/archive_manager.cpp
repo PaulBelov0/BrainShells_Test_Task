@@ -34,6 +34,7 @@ CompressionType ArchiveManager::getCompressionTypeFromIndex(int index)
     case 5: return CompressionType::WARC;
     case 6: return CompressionType::CPIO;
     }
+    return CompressionType::Seven_Z;
 }
 
 QString ArchiveManager::getSupportedArchiveFormats()
@@ -137,33 +138,41 @@ void ArchiveManager::compress(QString sourcePath, QString destPath, CompressionT
     switch(comprType)
     {
     case CompressionType::Seven_Z:
-        destinationPath += "/arhived.7z";
+        destinationPath += ".7z";
         break;
     case CompressionType::ZIP:
-        destinationPath += "/arhived.zip";
+        destinationPath += ".zip";
         break;
     case CompressionType::CPIO:
-        destinationPath += "/arhived.cpio";
+        destinationPath += ".cpio";
         break;
     case CompressionType::ISO:
-        destinationPath += "/arhived.iso";
+        destinationPath += ".iso";
         break;
     case CompressionType::TAR:
-        destinationPath += "/arhived.tar";
+        destinationPath += ".tar";
         break;
     case CompressionType::WARC:
-        destinationPath += "/arhived.warc";
+        destinationPath += ".warc";
         break;
     case CompressionType::XAR:
-        destinationPath += "/arhived.xar";
+        destinationPath += ".xar";
         break;
     }
 
     qDebug() << "Source path:" << sourcePath;
     qDebug() << "Destination path:" << destinationPath;
 
-    struct archive *a;
-    struct archive_entry *entry;
+    QFileInfo sourceInfo(sourcePath);
+    if (!sourceInfo.exists())
+    {
+        qDebug() << "Source path does not exist!";
+        emit compressionFinished();
+        return;
+    }
+
+    struct archive* a;
+    struct archive_entry* entry;
     char buff[8192];
     int len;
 
@@ -180,87 +189,108 @@ void ArchiveManager::compress(QString sourcePath, QString destPath, CompressionT
     case CompressionType::CPIO: archive_write_set_format_cpio(a); break;
     }
 
-    archive_write_add_filter_gzip(a);
-
-    if (archive_write_open_filename(a, destinationPath.toLocal8Bit().constData()) != ARCHIVE_OK) return;
-
-    QDirIterator it(sourcePath, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-    QDir rootDir(sourcePath);
-
-    while (it.hasNext())
+    // For 7-z and zip
+    if (comprType != CompressionType::ZIP && comprType != CompressionType::Seven_Z)
     {
-        QString filePath = it.next();
-        QString relativePath = rootDir.relativeFilePath(filePath);
+        archive_write_add_filter_gzip(a);
+    }
 
-        QFile file(filePath);
-        if (!file.open(QIODevice::ReadOnly)) continue;
+    if (archive_write_open_filename(a, destinationPath.toLocal8Bit().constData()) != ARCHIVE_OK)
+    {
+        qDebug() << "Failed to open archive file for writing";
+        archive_write_free(a);
+        emit compressionFinished();
+        return;
+    }
+
+    if (sourceInfo.isFile())
+    {
+        qDebug() << "Compressing single file";
+
+        QFile file(sourcePath);
+        if (!file.open(QIODevice::ReadOnly))
+        {
+            qDebug() << "Cannot open source file";
+            archive_write_close(a);
+            archive_write_free(a);
+            emit compressionFinished();
+            return;
+        }
 
         entry = archive_entry_new();
-
-        archive_entry_set_pathname(entry, relativePath.toLocal8Bit().constData());
+        archive_entry_set_pathname(entry, sourceInfo.fileName().toLocal8Bit().constData());
         archive_entry_set_size(entry, file.size());
         archive_entry_set_filetype(entry, AE_IFREG);
         archive_entry_set_perm(entry, 0644);
+        archive_entry_set_mtime(entry, sourceInfo.lastModified().toSecsSinceEpoch(), 0);
 
-        // Установите время файла (важно для валидности архива)
-        archive_entry_set_mtime(entry, QFileInfo(filePath).lastModified().toSecsSinceEpoch(), 0);
-
-        // 1. Пишем заголовок файла
-        int r = archive_write_header(a, entry);
-        if (r != ARCHIVE_OK) {
-            qDebug() << "Failed to write header for:" << relativePath;
-            archive_entry_free(entry);
-            file.close();
-            continue;
-        }
-
-        // 2. Копируем данные файла
-        while ((len = file.read(buff, sizeof(buff))) > 0) {
-            if (archive_write_data(a, buff, len) < 0) {
-                qDebug() << "Failed to write data for:" << relativePath;
-                break;
+        if (archive_write_header(a, entry) == ARCHIVE_OK)
+        {
+            while ((len = file.read(buff, sizeof(buff))) > 0)
+            {
+                archive_write_data(a, buff, len);
             }
+            archive_write_finish_entry(a);
         }
 
-        // 3. ⚠️ ОБЯЗАТЕЛЬНО! Завершаем запись текущего файла
-        r = archive_write_finish_entry(a);
-        if (r != ARCHIVE_OK) {
-            qDebug() << "Failed to finish entry for:" << relativePath;
-        }
-
-        // 4. Освобождаем ресурсы
         archive_entry_free(entry);
         file.close();
     }
+    // For directory
+    else if (sourceInfo.isDir())
+    {
+        qDebug() << "Compressing directory";
 
-    // while (it.hasNext())
-    // {
-    //     QString filePath = it.next();
+        QDirIterator it(sourcePath, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+        QDir rootDir(sourcePath);
+        int fileCount = 0;
 
-    //     QString relativePath = rootDir.relativeFilePath(filePath);
+        while (it.hasNext())
+        {
+            fileCount++;
+            QString filePath = it.next();
+            QString relativePath = rootDir.relativeFilePath(filePath);
 
-    //     QFile file(filePath);
-    //     if (!file.open(QIODevice::ReadOnly)) continue;
+            qDebug() << "File #" << fileCount << ":" << relativePath;
 
-    //     entry = archive_entry_new();
+            QFile file(filePath);
+            if (!file.open(QIODevice::ReadOnly))
+            {
+                qDebug() << "  Skipping, cannot open";
+                continue;
+            }
 
-    //     archive_entry_set_pathname(entry, relativePath.toLocal8Bit().constData());
-    //     archive_entry_set_size(entry, file.size());
-    //     archive_entry_set_filetype(entry, AE_IFREG);
-    //     archive_entry_set_perm(entry, 0644);
+            entry = archive_entry_new();
 
-    //     archive_write_header(a, entry);
+            archive_entry_set_pathname(entry, relativePath.toLocal8Bit().constData());
+            archive_entry_set_size(entry, file.size());
+            archive_entry_set_filetype(entry, AE_IFREG);
+            archive_entry_set_perm(entry, 0644);
+            archive_entry_set_mtime(entry, QFileInfo(filePath).lastModified().toSecsSinceEpoch(), 0);
 
-    //     while ((len = file.read(buff, sizeof(buff))) > 0) {
-    //         archive_write_data(a, buff, len);
-    //     }
+            if (archive_write_header(a, entry) == ARCHIVE_OK)
+            {
+                while ((len = file.read(buff, sizeof(buff))) > 0)
+                {
+                    archive_write_data(a, buff, len);
+                }
+                archive_write_finish_entry(a);
+            } else {
+                qDebug() << "  Failed to write header";
+            }
 
-    //     archive_entry_free(entry);
-    //     file.close();
-    // }
+            archive_entry_free(entry);
+            file.close();
+        }
+
+        qDebug() << "Total files processed:" << fileCount;
+    }
 
     archive_write_close(a);
     archive_write_free(a);
+
+    qDebug() << "Compression finished. Archive:" << destinationPath;
+    qDebug() << "Archive size:" << QFileInfo(destinationPath).size() << "bytes";
 
     emit compressionFinished();
 }

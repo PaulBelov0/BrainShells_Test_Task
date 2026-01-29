@@ -7,8 +7,6 @@ CompressionTab::CompressionTab(QWidget *parent)
 
     m_archiveManager = new ArchiveManager(this);
 
-    QLabel* selectorLbl = new QLabel("Select compression type:", this);
-
     QWidget* typeSelectionWgt = new QWidget(this);
     QVBoxLayout* typeSelectionLayout = new QVBoxLayout(typeSelectionWgt);
 
@@ -65,30 +63,43 @@ CompressionTab::CompressionTab(QWidget *parent)
 
     layout->addWidget(destinationSelectionWgt, 4, 0, 1, 5);
 
+    QLabel* archiveNameLbl = new QLabel("   Archive name:", this);
+    QLineEdit* archiveName = new QLineEdit(this);
+    archiveName->setText("new_archive");
+
+    layout->addWidget(archiveNameLbl, 5, 0, 1, 1);
+    layout->addWidget(archiveName, 5, 1, 1, 1);
 
     QPushButton* compressArchiveBtn = new QPushButton("Compress", this);
-    layout->addWidget(compressArchiveBtn, 5, 5, 1, 1);
+    layout->addWidget(compressArchiveBtn, 6, 4, 1, 2);
 
-    connect(compressArchiveBtn, &QPushButton::clicked, [this, targetSelector, compressionTypeSelector, destinationSelector]{
+    connect(compressArchiveBtn, &QPushButton::clicked, [this, targetSelector, compressionTypeSelector, destinationSelector, archiveName]{
+
+        QPointer<QMessageBox> msg = new QMessageBox(this);
+
         if (targetSelector->getPath() == "" || targetSelector->getPath().isEmpty())
         {
-            qDebug() << targetSelector->getPath();
-            QMessageBox* msg = new QMessageBox(this);
             msg->setText("Error! Please, select an archive target.");
             msg->exec();
+            return;
         }
-        else
+
+        if (archiveName->text() == "" || archiveName->text().isEmpty())
         {
-            qDebug() << targetSelector->getPath();
-            if (destinationSelector->getPath() == "" || destinationSelector->getPath().isEmpty())
-                m_archiveManager->compress(targetSelector->getPath(),
-                                           QFileDialog::getExistingDirectory(this, "Select folder", QDir::homePath(),
-                                                                             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks ),
-                                           ArchiveManager::getCompressionTypeFromIndex(compressionTypeSelector->currentIndex()));
-            else
-                m_archiveManager->compress(targetSelector->getPath(), destinationSelector->getPath(),
-                                           ArchiveManager::getCompressionTypeFromIndex(compressionTypeSelector->currentIndex()));
+            msg->setText("Error! Please, enter archive name.");
+            msg->exec();
+            return;
         }
+
+        qDebug() << targetSelector->getPath();
+        if (destinationSelector->getPath() == "" || destinationSelector->getPath().isEmpty())
+            m_archiveManager->compress(targetSelector->getPath(),
+                                       QFileDialog::getExistingDirectory(this, "Select folder", QDir::homePath(),
+                                                                         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks ) + "/" + archiveName->text(),
+                                       ArchiveManager::getCompressionTypeFromIndex(compressionTypeSelector->currentIndex()));
+        else
+            m_archiveManager->compress(targetSelector->getPath(), destinationSelector->getPath() + "/" + archiveName->text(),
+                                       ArchiveManager::getCompressionTypeFromIndex(compressionTypeSelector->currentIndex()));
     });
 
     connect (m_archiveManager.get(), &ArchiveManager::compressionFinished, [destinationSelector]{
