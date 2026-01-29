@@ -5,6 +5,10 @@
 #include <QFileDialog>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QGridLayout>
+#include <QVBoxLayout>
+
+#include "Widgets/file_selector.h"
 
 class MainWindow : public QMainWindow
 {
@@ -12,6 +16,5 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
 };
 #endif // MAIN_WINDOW_H

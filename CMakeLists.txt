@@ -26,6 +26,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         Widgets/file_selector.h Widgets/file_selector.cpp
+        resources.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET BrainShells_TestTask APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
