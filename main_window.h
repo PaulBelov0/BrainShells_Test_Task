@@ -5,6 +5,14 @@
 #include <QFileDialog>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QGridLayout>
+#include <QVBoxLayout>
+#include <QTabWidget>
+
+#include "widgets/file_selector.h"
+#include "widgets/extraction_tab.h"
+#include "Widgets/compression_tab.h"
+
 
 class MainWindow : public QMainWindow
 {
@@ -12,6 +20,9 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+
+private:
+    QPointer<QTabWidget> m_tabWidget;
+    QPointer<QVBoxLayout> m_layout;
 };
 #endif // MAIN_WINDOW_H

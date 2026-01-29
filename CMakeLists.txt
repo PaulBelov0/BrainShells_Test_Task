@@ -21,11 +21,19 @@ set(PROJECT_SOURCES
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
     qt_add_executable(BrainShells_TestTask
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        Widgets/file_selector.h Widgets/file_selector.cpp
+        widgets/file_selector.h widgets/file_selector.cpp
+        resources.h
+        widgets/extraction_tab.h widgets/extraction_tab.cpp
+        widgets/compression_tab.h widgets/compression_tab.cpp
+        styles.h
+        services/archive_manager.h services/archive_manager.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET BrainShells_TestTask APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -50,6 +58,9 @@ target_link_libraries(BrainShells_TestTask PRIVATE Qt${QT_VERSION_MAJOR}::Widget
 target_include_directories(BrainShells_TestTask PRIVATE ${LibArchive_INCLUDE_DIRS})
 target_link_libraries(BrainShells_TestTask PRIVATE ${LibArchive_LIBRARIES})
 target_link_libraries(BrainShells_TestTask PRIVATE Qt6::Widgets)
+target_link_libraries(BrainShells_TestTask PRIVATE Qt6::Widgets)
+target_link_libraries(BrainShells_TestTask PRIVATE Qt6::Widgets)
+target_link_libraries(BrainShells_TestTask PRIVATE Qt6::Core)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
