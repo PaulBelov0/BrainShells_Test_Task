@@ -10,7 +10,9 @@ FileSelector::FileSelector(ArchiveManager* archiveManager, SelectionType type, Q
 
     m_path = new QLineEdit(this);
     m_path->setEnabled(false);
+    m_path->setStyleSheet(Styles::lineEdit);
     QPushButton* fileDialogBtn = new QPushButton("Select", this);
+    fileDialogBtn->setStyleSheet(Styles::standartButton);
 
     m_layout->addWidget(m_path);
     m_layout->addWidget(fileDialogBtn);

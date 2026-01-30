@@ -12,6 +12,7 @@
 #include "widgets/file_selector.h"
 #include "widgets/extraction_tab.h"
 #include "Widgets/compression_tab.h"
+#include "styles.h"
 
 
 class MainWindow : public QMainWindow

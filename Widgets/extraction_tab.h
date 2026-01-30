@@ -10,6 +10,7 @@
 
 #include "file_selector.h"
 #include "../services/archive_manager.h"
+#include "../styles.h"
 
 class ExtractionTab : public QWidget
 {

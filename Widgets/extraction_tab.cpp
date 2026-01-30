@@ -12,11 +12,13 @@ ExtractionTab::ExtractionTab(QWidget *parent)
     QVBoxLayout* fileSelectionLayout = new QVBoxLayout(fileSelectionWgt);
 
     QLabel* fileSelectionLbl = new QLabel("Select an achive:", this);
+    fileSelectionLbl->setStyleSheet(Styles::label);
+
     FileSelector* fileSelector = new FileSelector(m_archiveManager, SelectionType::Archive, this);
 
     fileSelectionLayout->addWidget(fileSelectionLbl);
     fileSelectionLayout->addWidget(fileSelector);
-    fileSelectionWgt->setFixedHeight(fileSelector->height() * 3);
+    fileSelectionWgt->setFixedHeight(fileSelector->height() * 4);
 
     layout->addWidget(fileSelectionWgt, 3, 0, 1, 5);
 
@@ -26,17 +28,19 @@ ExtractionTab::ExtractionTab(QWidget *parent)
     QVBoxLayout* destinationSelectionLayout = new QVBoxLayout(destinationSelectionWgt);
 
     QLabel* destinationSelectionLbl = new QLabel("Select destination path:", this);
+    destinationSelectionLbl->setStyleSheet(Styles::label);
     FileSelector* destinationSelector = new FileSelector(m_archiveManager, SelectionType::Dir, this);
 
     destinationSelectionLayout->addWidget(destinationSelectionLbl);
     destinationSelectionLayout->addWidget(destinationSelector);
-    destinationSelectionWgt->setFixedHeight(destinationSelector->height() * 3);
+    destinationSelectionWgt->setFixedHeight(destinationSelector->height() * 4);
 
     layout->addWidget(destinationSelectionWgt, 4, 0, 1, 5);
 
 
     QPushButton* extractArchiveBtn = new QPushButton("Extract", this);
     layout->addWidget(extractArchiveBtn, 6, 5, 1, 1);
+    extractArchiveBtn->setStyleSheet(Styles::highlightedButton);
 
     connect(extractArchiveBtn, &QPushButton::clicked, [this, fileSelector, destinationSelector]{
         if (fileSelector->getPath() == "" || fileSelector->getPath().isEmpty())

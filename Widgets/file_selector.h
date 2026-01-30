@@ -14,6 +14,7 @@
 
 #include "../resources.h"
 #include "../services/archive_manager.h"
+#include "../styles.h"
 
 class FileSelector : public QWidget
 {

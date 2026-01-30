@@ -17,5 +17,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_tabWidget->addTab(extractionTab, "Extract");
     m_tabWidget->addTab(compressionTab, "Compress");
+    m_tabWidget->setStyleSheet(Styles::tabWidget);
+    m_tabWidget->tabBar()->setExpanding(true);
+    m_tabWidget->tabBar()->setUsesScrollButtons(false);
+
     m_layout->addWidget(m_tabWidget);
 }

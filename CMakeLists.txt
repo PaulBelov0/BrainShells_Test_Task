@@ -34,6 +34,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core)
         widgets/compression_tab.h widgets/compression_tab.cpp
         styles.h
         services/archive_manager.h services/archive_manager.cpp
+        resources.qrc
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET BrainShells_TestTask APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
